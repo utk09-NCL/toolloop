@@ -1,0 +1,53 @@
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+  font-size: var(--text-sm);
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+/* Default / category */
+.category {
+  background: var(--color-badge-neutral-bg);
+  color: var(--color-text-muted);
+}
+
+/* Condition */
+.condition {
+  background: var(--color-badge-condition-bg);
+  color: var(--color-badge-condition-color);
+}
+
+/* Availability */
+.available {
+  background: var(--color-accent-weak);
+  color: var(--color-accent);
+}
+
+.unavailable {
+  background: var(--color-badge-neutral-bg);
+  color: var(--color-text-muted);
+}
+
+/* Request statuses */
+.pending {
+  background: var(--color-badge-pending-bg);
+  color: var(--color-pending);
+}
+
+.approved {
+  background: var(--color-accent-weak);
+  color: var(--color-approved);
+}
+
+.rejected {
+  background: var(--color-badge-neutral-bg);
+  color: var(--color-rejected);
+}
+
+.returned {
+  background: var(--color-badge-returned-bg);
+  color: var(--color-returned);
+}

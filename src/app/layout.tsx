@@ -1,11 +1,11 @@
 import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
 import "@/app/globals.css";
+import { Footer } from "@/components/Footer";
 import ThemeToggle from "@/components/ThemeToggle";
 import TrackedLink from "@/components/TrackedLink";
-import styles from "./layout.module.css";
-import { Footer } from "@/components/Footer";
 import { ROUTES } from "@/lib/constants";
+import styles from "./layout.module.css";
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
 
