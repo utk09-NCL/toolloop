@@ -1,5 +1,11 @@
 # ToolLoop - Agent Reference
 
+<!-- BEGIN:nextjs-agent-rules -->
+This is NOT the Next.js you know
+
+This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` before writing any code. Heed deprecation notices.
+<!-- END:nextjs-agent-rules -->
+
 ## What it is
 
 Neighborhood tool-lending webapp. Borrow tools from people nearby. No money, no real auth, no complexity.

@@ -1,0 +1,31 @@
+{
+  "name": "toolloop",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "db:reset": "prisma migrate reset --force && prisma db seed",
+    "lint": "biome lint ./src",
+    "format": "biome format --write ./src",
+    "check": "biome check --write ./src"
+  },
+  "dependencies": {
+    "@prisma/adapter-libsql": "7.8.0",
+    "@prisma/client": "7.8.0",
+    "next": "16.2.9",
+    "react": "19.2.7",
+    "react-dom": "19.2.7",
+    "zod": "4.4.3"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.5.0",
+    "@types/node": "25.9.3",
+    "@types/react": "19.2.17",
+    "@types/react-dom": "19.2.3",
+    "prisma": "7.8.0",
+    "tsx": "4.22.4",
+    "typescript": "6.0.3"
+  }
+}
