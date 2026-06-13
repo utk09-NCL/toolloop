@@ -11,19 +11,19 @@ function resolveTheme(): Theme {
 }
 
 export default function ThemeToggle() {
-  const [theme, setTheme] = useState<Theme>(() => resolveTheme());
+  const [theme, setTheme] = useState<Theme>("dark");
 
   useEffect(() => {
-    document.documentElement.dataset.theme = theme;
-    setTheme(theme);
-    logger.info("user.theme.toggle", { theme: theme });
-  }, [theme]);
+    const t = resolveTheme();
+    document.documentElement.dataset.theme = t;
+    setTheme(t);
+  }, []);
 
   function toggle() {
-    setTheme((prevTheme) => {
-      const newTheme = prevTheme === "light" ? "dark" : "light";
-      return newTheme;
-    });
+    const next: Theme = theme === "light" ? "dark" : "light";
+    document.documentElement.dataset.theme = next;
+    setTheme(next);
+    logger.info("user.theme.toggle", { theme: next });
   }
 
   return (
