@@ -1,23 +1,41 @@
 # ToolLoop
 
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+-> ToolLoop is a neighborhood tool-lending web application where people can share and borrow tools from others nearby.
+-> The project focuses on simple borrowing workflows without payments, real authentication, ratings, or other marketplace complexity.
 
-## Getting Started
+## Stack
 
-First, run the development server:
+- Next.js 16 (App Router)
+- SQLite + Prisma 7
+- Server Actions
+- CSS Modules
+- Vitest
+
+## Setup
+
+```bash
+npm install
+
+npx prisma migrate dev
+npx prisma generate
+npx prisma db seed
+
+npm run dev
+
+```md
+> Note: DATABASE_URL goes in prisma.config.ts, not .env or schema.prisma.
+
+
+## Reset Database
+
+```bash
+npm run db:reset
+
+## Available Scripts
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
-
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+npm run build
+npm run lint
+npm run test 
+npm run test:watch
