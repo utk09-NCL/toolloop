@@ -4,13 +4,15 @@ import { revalidatePath } from "next/cache";
 import { ROUTES } from "@/lib/constants";
 import { db } from "@/lib/db";
 import {
-  canCancelRequest,
   canCreateRequest,
-  canTransition,
+  canPerformAction,
+  generateOtp,
+  getRequestsToAutoReject,
   isOwner,
   nextStatus,
   type RequestAction,
   toolAvailabilityAfter,
+  verifyOtp,
 } from "@/lib/domain/requests";
 import { logger } from "@/lib/logger";
 import { getCurrentUser } from "@/lib/session";
@@ -35,13 +37,18 @@ export async function createRequest(
 
   logger.info("action.createRequest", { userId: me.id, toolId: parsed.data.toolId });
 
-  const tool = await db.tool.findUnique({ where: { id: parsed.data.toolId } });
+  const tool = await db.tool.findUnique({
+    where: { id: parsed.data.toolId },
+    include: {
+      requests: { where: { status: "PENDING" }, select: { requesterId: true, status: true } },
+    },
+  });
   if (!tool) {
     logger.warn("action.createRequest - tool not found", { toolId: parsed.data.toolId });
     return { ok: false, error: "Tool not found." };
   }
 
-  const decision = canCreateRequest(tool, me.id);
+  const decision = canCreateRequest(tool, me.id, tool.requests);
   if (!decision.ok) {
     logger.warn("action.createRequest - denied", {
       reason: decision.reason,
@@ -66,7 +73,7 @@ export async function createRequest(
   return { ok: true };
 }
 
-/** Shared orchestrator for approve/reject/return - verifies ownership, calls domain policy, writes atomically. */
+/** Shared orchestrator for reject (and future owner-triggered transitions). */
 async function transition(requestId: string, action: RequestAction): Promise<RequestResult> {
   const me = await getCurrentUser();
   logger.info(`action.transition.${action}`, { requestId, userId: me.id });
@@ -79,12 +86,8 @@ async function transition(requestId: string, action: RequestAction): Promise<Req
     logger.warn(`action.transition.${action} - request not found`, { requestId });
     return { ok: false, error: "Request not found." };
   }
-  if (!isOwner(req.tool, me.id)) {
-    logger.warn(`action.transition.${action} - not owner`, { requestId, userId: me.id });
-    return { ok: false, error: "Not your tool." };
-  }
 
-  const decision = canTransition(req, action);
+  const decision = canPerformAction(req, req.tool, me.id, action);
   if (!decision.ok) {
     logger.warn(`action.transition.${action} - denied`, { reason: decision.reason, requestId });
     return { ok: false, error: decision.reason };
@@ -110,8 +113,61 @@ async function transition(requestId: string, action: RequestAction): Promise<Req
   return { ok: true };
 }
 
-/** Approves a PENDING request and marks the tool unavailable atomically. */
-export const approveRequest = async (id: string) => transition(id, "approve");
+/** Approves a PENDING request, marks tool unavailable, and auto-rejects all other PENDING requests for the same tool. */
+export async function approveRequest(requestId: string): Promise<RequestResult> {
+  const me = await getCurrentUser();
+  logger.info("action.approveRequest", { requestId, userId: me.id });
+
+  const req = await db.borrowRequest.findUnique({
+    where: { id: requestId },
+    include: {
+      tool: {
+        include: {
+          requests: { where: { status: "PENDING" }, select: { id: true, status: true } },
+        },
+      },
+    },
+  });
+  if (!req) {
+    logger.warn("action.approveRequest - request not found", { requestId });
+    return { ok: false, error: "Request not found." };
+  }
+
+  const decision = canPerformAction(req, req.tool, me.id, "approve");
+  if (!decision.ok) {
+    logger.warn("action.approveRequest - denied", { reason: decision.reason, requestId });
+    return { ok: false, error: decision.reason };
+  }
+
+  const autoRejectIds = getRequestsToAutoReject(requestId, req.tool.requests);
+
+  await logger.metric(
+    "db.transaction.approve",
+    () =>
+      db.$transaction([
+        db.borrowRequest.update({ where: { id: requestId }, data: { status: "APPROVED" } }),
+        db.tool.update({ where: { id: req.toolId }, data: { available: false } }),
+        ...(autoRejectIds.length > 0
+          ? [
+              db.borrowRequest.updateMany({
+                where: { id: { in: autoRejectIds } },
+                data: { status: "REJECTED" },
+              }),
+            ]
+          : []),
+      ]),
+    { requestId, toolId: req.toolId, autoRejected: autoRejectIds.length },
+  );
+
+  revalidatePath(ROUTES.DASHBOARD);
+  revalidatePath(ROUTES.TOOL(req.toolId));
+  logger.info("action.approveRequest - success", {
+    requestId,
+    toolId: req.toolId,
+    autoRejected: autoRejectIds.length,
+  });
+  return { ok: true };
+}
 
 /** Rejects a PENDING request - tool availability is unchanged. */
 export const rejectRequest = async (id: string) => transition(id, "reject");
@@ -121,10 +177,13 @@ export async function cancelRequest(requestId: string): Promise<RequestResult> {
   const me = await getCurrentUser();
   logger.info("action.cancelRequest", { requestId, userId: me.id });
 
-  const req = await db.borrowRequest.findUnique({ where: { id: requestId } });
+  const req = await db.borrowRequest.findUnique({
+    where: { id: requestId },
+    include: { tool: true },
+  });
   if (!req) return { ok: false, error: "Request not found." };
 
-  const decision = canCancelRequest(req, me.id);
+  const decision = canPerformAction(req, req.tool, me.id, "cancel");
   if (!decision.ok) {
     logger.warn("action.cancelRequest - denied", { reason: decision.reason, requestId });
     return { ok: false, error: decision.reason };
@@ -158,7 +217,7 @@ export async function generateReturnOtp(
   if (!isOwner(req.tool, me.id)) return { ok: false, error: "Not your tool." };
   if (req.status !== "APPROVED") return { ok: false, error: "Request must be approved." };
 
-  const otp = String(Math.floor(100_000 + Math.random() * 900_000));
+  const otp = generateOtp();
 
   await logger.metric(
     "db.borrowRequest.generateOtp",
@@ -181,12 +240,17 @@ export async function submitReturnOtp(requestId: string, otp: string): Promise<R
     include: { tool: true },
   });
   if (!req) return { ok: false, error: "Request not found." };
-  if (req.requesterId !== me.id) return { ok: false, error: "Not your request." };
-  if (req.status !== "APPROVED") return { ok: false, error: "This request is not active." };
+
+  const decision = canPerformAction(req, req.tool, me.id, "return");
+  if (!decision.ok) {
+    logger.warn("action.submitReturnOtp - denied", { reason: decision.reason, requestId });
+    return { ok: false, error: decision.reason };
+  }
+
   if (!req.returnOtp) {
     return { ok: false, error: "No return code yet - ask the owner to generate one." };
   }
-  if (req.returnOtp !== otp) {
+  if (!verifyOtp(req, otp)) {
     logger.warn("action.submitReturnOtp - wrong otp", { requestId });
     return { ok: false, error: "Incorrect return code. Check with the owner." };
   }

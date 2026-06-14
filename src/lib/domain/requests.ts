@@ -8,13 +8,22 @@ export function isOwner(tool: Pick<Tool, "ownerId">, userId: string): boolean {
   return tool.ownerId === userId;
 }
 
-/** Decides whether a user may create a borrow request - blocks self-requests and unavailable tools. */
+/** Returns true if the given user made the borrow request. */
+export function isRequester(req: Pick<BorrowRequest, "requesterId">, userId: string): boolean {
+  return req.requesterId === userId;
+}
+
+/** Decides whether a user may create a borrow request - blocks self-requests, unavailable tools, and duplicate PENDING requests. */
 export function canCreateRequest(
   tool: Pick<Tool, "ownerId" | "available">,
   requesterId: string,
+  existingRequests: Pick<BorrowRequest, "requesterId" | "status">[],
 ): Decision {
   if (isOwner(tool, requesterId)) return { ok: false, reason: "You can't borrow your own tool." };
   if (!tool.available) return { ok: false, reason: "This tool isn't available right now." };
+  if (existingRequests.some((r) => r.requesterId === requesterId && r.status === "PENDING")) {
+    return { ok: false, reason: "You already have a pending request for this tool." };
+  }
   return { ok: true };
 }
 
@@ -25,23 +34,35 @@ const REQUIRED_STATUS: Record<RequestAction, BorrowRequest["status"]> = {
   cancel: "PENDING",
 };
 
-/** Decides whether a status transition is valid given the request's current status. */
-export function canTransition(req: Pick<BorrowRequest, "status">, action: RequestAction): Decision {
-  return req.status === REQUIRED_STATUS[action]
-    ? { ok: true }
-    : { ok: false, reason: `Can't ${action} a ${req.status.toLowerCase()} request.` };
+const TARGET_STATUS: Record<RequestAction, BorrowRequest["status"]> = {
+  approve: "APPROVED",
+  reject: "REJECTED",
+  return: "RETURNED",
+  cancel: "CANCELLED",
+};
+
+/** Decides whether a user may perform an action - checks both the required status transition and the user's permission (owner vs requester). */
+export function canPerformAction(
+  req: Pick<BorrowRequest, "status" | "requesterId">,
+  tool: Pick<Tool, "ownerId">,
+  userId: string,
+  action: RequestAction,
+): Decision {
+  if (req.status !== REQUIRED_STATUS[action]) {
+    return { ok: false, reason: `Can't ${action} a ${req.status.toLowerCase()} request.` };
+  }
+  if (action === "approve" || action === "reject") {
+    if (!isOwner(tool, userId)) return { ok: false, reason: "Not your tool." };
+  }
+  if (action === "cancel" || action === "return") {
+    if (!isRequester(req, userId)) return { ok: false, reason: "Not your request." };
+  }
+  return { ok: true };
 }
 
 /** Returns the target RequestStatus for a given action. */
 export function nextStatus(action: RequestAction): BorrowRequest["status"] {
-  return (
-    {
-      approve: "APPROVED",
-      reject: "REJECTED",
-      return: "RETURNED",
-      cancel: "CANCELLED",
-    } as const
-  )[action];
+  return TARGET_STATUS[action];
 }
 
 /** Returns the tool availability value to write after an action, or null if no change is needed. */
@@ -51,12 +72,22 @@ export function toolAvailabilityAfter(action: RequestAction): boolean | null {
   return null; // reject, cancel: availability unchanged
 }
 
-/** Decides whether the borrower may cancel their own request - only PENDING requests are cancellable. */
-export function canCancelRequest(
-  req: Pick<BorrowRequest, "requesterId" | "status">,
-  userId: string,
-): Decision {
-  if (req.requesterId !== userId) return { ok: false, reason: "Not your request." };
-  if (req.status !== "PENDING") return { ok: false, reason: "Can only cancel a pending request." };
-  return { ok: true };
+/** Generates a random 6-digit OTP string for tool return verification. */
+export function generateOtp(): string {
+  return String(Math.floor(100_000 + Math.random() * 900_000));
+}
+
+/** Returns true if the submitted OTP matches the one stored on the request. */
+export function verifyOtp(req: Pick<BorrowRequest, "returnOtp">, inputOtp: string): boolean {
+  return !!req.returnOtp && req.returnOtp === inputOtp.trim();
+}
+
+/** Returns IDs of all other PENDING requests for the same tool that should be auto-rejected when one is approved. */
+export function getRequestsToAutoReject(
+  approvedRequestId: string,
+  allRequestsForTool: Pick<BorrowRequest, "id" | "status">[],
+): string[] {
+  return allRequestsForTool
+    .filter((r) => r.id !== approvedRequestId && r.status === "PENDING")
+    .map((r) => r.id);
 }
