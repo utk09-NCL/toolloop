@@ -8,8 +8,8 @@ type Props = ComponentPropsWithoutRef<typeof Link> & {
   location?: string;
 };
 
-/** Drop-in replacement for Next.js Link that logs a user.link.click event on every navigation. */
-export default function TrackedLink({ label, location, onClick, children, ...props }: Props) {
+/** Drop-in Next.js Link replacement that logs a user.link.click event on every navigation. */
+export function TrackedLink({ label, location, onClick, children, ...props }: Props) {
   return (
     <Link
       {...props}
@@ -19,10 +19,7 @@ export default function TrackedLink({ label, location, onClick, children, ...pro
           ...(label && { label }),
           ...(location && { location }),
         });
-
-        if (onClick) {
-          onClick(e);
-        }
+        onClick?.(e);
       }}
     >
       {children}

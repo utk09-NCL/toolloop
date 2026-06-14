@@ -1,16 +1,21 @@
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { FavoriteButton } from "@/components/FavoriteButton";
 import { RequestButton } from "@/components/RequestButton";
 import { ToolPhoto } from "@/components/ToolPhoto";
-import TrackedLink from "@/components/TrackedLink";
+import { TrackedLink } from "@/components/TrackedLink";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
-import { CATEGORY_LABELS, CONDITION_LABELS } from "@/lib/constants";
+import { CATEGORY_LABELS, CONDITION_LABELS, ROUTES } from "@/lib/constants";
 import { db } from "@/lib/db";
 import { getCurrentUser } from "@/lib/session";
 import styles from "./detail.module.css";
 
-export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}): Promise<Metadata> {
   const { id } = await params;
   const tool = await db.tool.findUnique({ where: { id }, select: { name: true } });
   return { title: tool ? `${tool.name} - ToolLoop` : "Tool not found - ToolLoop" };
@@ -38,7 +43,7 @@ export default async function ToolDetailPage({ params }: { params: Promise<{ id:
       <div className={styles.inner}>
         <nav aria-label="Breadcrumb">
           <TrackedLink
-            href="/browse"
+            href={ROUTES.BROWSE}
             className={styles.backLink}
             label="Back to browse"
             location="detail"

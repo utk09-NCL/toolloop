@@ -1,16 +1,17 @@
-import Link from "next/link";
+import type { Metadata } from "next";
 import { AvailabilityToggle } from "@/components/AvailabilityToggle";
 import { RequestList } from "@/components/RequestList";
 import { ToolPhoto } from "@/components/ToolPhoto";
+import { TrackedLink } from "@/components/TrackedLink";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { EmptyState } from "@/components/ui/EmptyState";
-import { CATEGORY_LABELS } from "@/lib/constants";
+import { CATEGORY_LABELS, ROUTES } from "@/lib/constants";
 import { db } from "@/lib/db";
 import { getCurrentUser } from "@/lib/session";
 import styles from "./dashboard.module.css";
 
-export const metadata = { title: "Dashboard - ToolLoop" };
+export const metadata: Metadata = { title: "Dashboard - ToolLoop" };
 
 export default async function DashboardPage() {
   const currentUser = await getCurrentUser();
@@ -34,7 +35,13 @@ export default async function DashboardPage() {
             <h1 className={styles.title}>Dashboard</h1>
             <p className={styles.subtitle}>Viewing as {currentUser.name}</p>
           </div>
-          <Button as={Link} href="/tools/new" size="sm">
+          <Button
+            as={TrackedLink}
+            href={ROUTES.TOOL_NEW}
+            size="sm"
+            label="List a tool"
+            location="dashboard"
+          >
             + List a tool
           </Button>
         </div>
@@ -45,7 +52,12 @@ export default async function DashboardPage() {
             headline="No tools listed yet"
             subtext="List a tool to start lending to neighbors."
             action={
-              <Button as={Link} href="/tools/new">
+              <Button
+                as={TrackedLink}
+                href={ROUTES.TOOL_NEW}
+                label="List your first tool"
+                location="dashboard"
+              >
                 List your first tool
               </Button>
             }
@@ -62,9 +74,14 @@ export default async function DashboardPage() {
                       size="sm"
                     />
                     <div className={styles.toolMeta}>
-                      <Link href={`/tools/${tool.id}`} className={styles.toolName}>
+                      <TrackedLink
+                        href={ROUTES.TOOL(tool.id)}
+                        className={styles.toolName}
+                        label={tool.name}
+                        location="dashboard"
+                      >
                         {tool.name}
-                      </Link>
+                      </TrackedLink>
                       <div className={styles.toolBadges}>
                         <Badge label={CATEGORY_LABELS[tool.category]} variant="category" />
                         <Badge

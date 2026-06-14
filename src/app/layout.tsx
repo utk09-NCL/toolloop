@@ -1,10 +1,13 @@
 import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
-import "@/app/globals.css";
 import { Footer } from "@/components/Footer";
-import ThemeToggle from "@/components/ThemeToggle";
-import TrackedLink from "@/components/TrackedLink";
+import { ThemeToggle } from "@/components/ThemeToggle";
+import { TrackedLink } from "@/components/TrackedLink";
+import { UserSwitcher } from "@/components/UserSwitcher";
 import { ROUTES } from "@/lib/constants";
+import { db } from "@/lib/db";
+import { getCurrentUser } from "@/lib/session";
+import "@/app/globals.css";
 import styles from "./layout.module.css";
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
@@ -49,15 +52,23 @@ const jsonLd = {
   "@context": "https://schema.org",
   "@type": "WebApplication",
   name: "ToolLoop",
-  description: "ToolLoop - Borrow tools from your neighbors. A community tool-lending webapp.",
+  description: "Borrow tools from people nearby. A community tool-lending webapp.",
   url: siteUrl,
   applicationCategory: "UtilitiesApplication",
   operatingSystem: "Web",
 };
 
 export default async function RootLayout({ children }: { children: ReactNode }) {
+  const [users, currentUser] = await Promise.all([
+    db.user.findMany({
+      orderBy: { name: "asc" },
+      select: { id: true, name: true, avatarColor: true },
+    }),
+    getCurrentUser(),
+  ]);
+
   return (
-    <html lang="en" data-theme="dark">
+    <html lang="en" data-theme="light">
       <body>
         <script type="application/ld+json">{JSON.stringify(jsonLd)}</script>
         <a href="#main-content" className={styles.skipLink}>
@@ -88,7 +99,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
                   Browse
                 </TrackedLink>
                 <TrackedLink
-                  href={ROUTES.LIST_NEW_TOOL}
+                  href={ROUTES.TOOL_NEW}
                   className={styles.navLink}
                   label="List a tool"
                   location="header"
@@ -122,10 +133,11 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
               </nav>
               <div className={styles.headerActions}>
                 <ThemeToggle />
+                <UserSwitcher users={users} currentUserId={currentUser.id} />
               </div>
             </div>
           </header>
-          <main id="main-content" className={styles.main}>
+          <main className={styles.main} id="main-content">
             {children}
           </main>
           <Footer />

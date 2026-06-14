@@ -1,9 +1,9 @@
 import type { Tool, User } from "@prisma/client";
 import { FavoriteButton } from "@/components/FavoriteButton";
-import { CATEGORY_LABELS } from "@/lib/constants";
+import { TrackedLink } from "@/components/TrackedLink";
+import { CATEGORY_LABELS, ROUTES } from "@/lib/constants";
 import styles from "./ToolCard.module.css";
 import { ToolPhoto } from "./ToolPhoto";
-import TrackedLink from "./TrackedLink";
 import { Badge } from "./ui/Badge";
 
 type ToolWithOwner = Tool & { owner: Pick<User, "name" | "avatarColor"> };
@@ -17,7 +17,7 @@ export function ToolCard({ tool, isFavorited }: ToolCardProps) {
   return (
     <article className={styles.card}>
       <TrackedLink
-        href={`/tools/${tool.id}`}
+        href={ROUTES.TOOL(tool.id)}
         className={styles.cardLink}
         label={tool.name}
         location="card"

@@ -1,6 +1,6 @@
 import type { BorrowRequest, Tool } from "@prisma/client";
 
-export type Decision = { ok: true } | { ok: false; reason: string };
+type Decision = { ok: true } | { ok: false; reason: string };
 export type RequestAction = "approve" | "reject" | "return" | "cancel";
 
 /** Returns true if the given user owns the tool. */

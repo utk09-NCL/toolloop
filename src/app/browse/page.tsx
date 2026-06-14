@@ -1,17 +1,18 @@
 import type { Category, Prisma } from "@prisma/client";
-import Link from "next/link";
+import type { Metadata } from "next";
 import { Suspense } from "react";
 import { FilterBar } from "@/components/FilterBar";
 import { ToolCard } from "@/components/ToolCard";
+import { TrackedLink } from "@/components/TrackedLink";
 import { Button } from "@/components/ui/Button";
 import { EmptyState } from "@/components/ui/EmptyState";
 import type { Neighborhood } from "@/lib/constants";
-import { CATEGORY_LABELS, NEIGHBORHOODS } from "@/lib/constants";
+import { CATEGORY_LABELS, NEIGHBORHOODS, ROUTES } from "@/lib/constants";
 import { db } from "@/lib/db";
 import { getCurrentUser } from "@/lib/session";
 import styles from "./browse.module.css";
 
-export const metadata = { title: "Browse tools - ToolLoop" };
+export const metadata: Metadata = { title: "Browse tools - ToolLoop" };
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
@@ -68,7 +69,14 @@ export default async function BrowsePage({ searchParams }: { searchParams: Searc
             </p>
           )}
         </div>
-        <Button as={Link} href="/tools/new" variant="secondary" size="sm">
+        <Button
+          as={TrackedLink}
+          href={ROUTES.TOOL_NEW}
+          variant="secondary"
+          size="sm"
+          label="List a tool"
+          location="browse"
+        >
           List a tool
         </Button>
       </div>
@@ -88,11 +96,11 @@ export default async function BrowsePage({ searchParams }: { searchParams: Searc
           }
           action={
             hasFilters ? (
-              <Button as={Link} href="/browse">
+              <Button as={TrackedLink} href={ROUTES.BROWSE} label="Clear filters" location="browse">
                 Clear filters
               </Button>
             ) : (
-              <Button as={Link} href="/tools/new">
+              <Button as={TrackedLink} href={ROUTES.TOOL_NEW} label="List a tool" location="browse">
                 List a tool
               </Button>
             )

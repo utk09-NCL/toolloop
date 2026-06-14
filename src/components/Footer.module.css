@@ -59,13 +59,6 @@
   color: var(--color-text-muted);
 }
 
-.copyright {
-  text-align: center;
-  font-size: var(--text-sm);
-  color: var(--color-text-muted);
-  padding: var(--space-6) var(--space-4);
-}
-
 @media (min-width: 48rem) {
   .inner {
     flex-direction: row;
@@ -77,9 +70,5 @@
   .note {
     margin-left: auto;
     padding-left: var(--space-8);
-  }
-
-  .copyright {
-    padding: var(--space-6) var(--space-8);
   }
 }

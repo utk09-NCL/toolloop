@@ -5,13 +5,15 @@ import styles from "./ThemeToggle.module.css";
 
 type Theme = "light" | "dark";
 
-/** Returns the current theme based on localStorage or system preference. */
 function resolveTheme(): Theme {
+  const stored = localStorage.getItem("theme") as Theme | null;
+  if (stored === "light" || stored === "dark") return stored;
   return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
 }
 
-export default function ThemeToggle() {
-  const [theme, setTheme] = useState<Theme>("dark");
+/** Navbar button that toggles between light and dark mode, persisting preference in localStorage. */
+export function ThemeToggle() {
+  const [theme, setTheme] = useState<Theme>("light");
 
   useEffect(() => {
     const t = resolveTheme();
@@ -20,10 +22,11 @@ export default function ThemeToggle() {
   }, []);
 
   function toggle() {
-    const next: Theme = theme === "light" ? "dark" : "light";
-    document.documentElement.dataset.theme = next;
-    setTheme(next);
+    const next: Theme = theme === "dark" ? "light" : "dark";
     logger.info("user.theme.toggle", { theme: next });
+    document.documentElement.dataset.theme = next;
+    localStorage.setItem("theme", next);
+    setTheme(next);
   }
 
   return (
@@ -31,8 +34,8 @@ export default function ThemeToggle() {
       type="button"
       className={styles.toggle}
       onClick={toggle}
-      aria-label={theme === "light" ? "Switch to dark mode" : "Switch to light mode"}
-      title={theme === "light" ? "Switch to dark mode" : "Switch to light mode"}
+      aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+      title={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
     >
       {theme === "dark" ? (
         <svg

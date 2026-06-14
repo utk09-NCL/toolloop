@@ -1,16 +1,16 @@
-import Link from "next/link";
+import type { Metadata } from "next";
 import { CancelRequestButton } from "@/components/CancelRequestButton";
 import { OtpReturnForm } from "@/components/OtpReturnForm";
+import { TrackedLink } from "@/components/TrackedLink";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { EmptyState } from "@/components/ui/EmptyState";
-import { STATUS_LABELS } from "@/lib/constants";
+import { ROUTES, STATUS_LABELS } from "@/lib/constants";
 import { db } from "@/lib/db";
 import { getCurrentUser } from "@/lib/session";
 import styles from "./borrows.module.css";
-import TrackedLink from "@/components/TrackedLink";
 
-export const metadata = { title: "My borrows - ToolLoop" };
+export const metadata: Metadata = { title: "My borrows - ToolLoop" };
 
 export default async function BorrowsPage() {
   const currentUser = await getCurrentUser();
@@ -43,7 +43,7 @@ export default async function BorrowsPage() {
           headline="No active borrow requests"
           subtext="When you request a tool, it'll show up here."
           action={
-            <Button as={Link} href="/browse">
+            <Button as={TrackedLink} href={ROUTES.BROWSE} label="Browse tools" location="borrows">
               Browse tools
             </Button>
           }
@@ -54,7 +54,7 @@ export default async function BorrowsPage() {
             <li key={req.id} className={styles.item}>
               <div className={styles.toolInfo}>
                 <TrackedLink
-                  href={`/tools/${req.tool.id}`}
+                  href={ROUTES.TOOL(req.tool.id)}
                   className={styles.toolName}
                   label={req.tool.name}
                   location="borrows"

@@ -1,8 +1,9 @@
+import type { Metadata } from "next";
 import { getCurrentUser } from "@/lib/session";
 import { NewToolForm } from "./NewToolForm";
 import styles from "./new.module.css";
 
-export const metadata = { title: "List a tool - ToolLoop" };
+export const metadata: Metadata = { title: "List a tool - ToolLoop" };
 
 export default async function NewToolPage() {
   const currentUser = await getCurrentUser();

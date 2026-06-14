@@ -92,7 +92,6 @@
 .howItWorks {
   background: var(--color-surface);
   border-top: 1px solid var(--color-border);
-  padding: var(--space-8) var(--space-4);
 }
 
 .inner {

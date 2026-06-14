@@ -1,12 +1,13 @@
 "use server";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { ROUTES } from "@/lib/constants";
 import { db } from "@/lib/db";
 import { logger } from "@/lib/logger";
 import { getCurrentUser } from "@/lib/session";
 import { createToolSchema } from "@/lib/validation";
 
-export type ToolFormState = null | { ok: false; errors: Record<string, string> } | { ok: true };
+type ToolFormState = null | { ok: false; errors: Record<string, string> } | { ok: true };
 
 /** Server action for the create-tool form - validates input, persists the tool, then redirects to its detail page. */
 export async function createTool(
@@ -42,9 +43,9 @@ export async function createTool(
   );
 
   logger.info("action.createTool - success", { userId: me.id, toolId: tool.id });
-  revalidatePath("/browse");
-  revalidatePath("/dashboard");
-  redirect(`/tools/${tool.id}`);
+  revalidatePath(ROUTES.BROWSE);
+  revalidatePath(ROUTES.DASHBOARD);
+  redirect(ROUTES.TOOL(tool.id));
 }
 
 /** Flips a tool's availability flag - only the tool's owner may call this. */
@@ -70,8 +71,8 @@ export async function toggleAvailability(
     { toolId, newAvailable: !tool.available },
   );
 
-  revalidatePath("/dashboard");
-  revalidatePath(`/tools/${toolId}`);
+  revalidatePath(ROUTES.DASHBOARD);
+  revalidatePath(ROUTES.TOOL(toolId));
   logger.info("action.toggleAvailability - success", { toolId, newAvailable: !tool.available });
   return { ok: true };
 }

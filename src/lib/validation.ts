@@ -1,17 +1,9 @@
-// TODO: Needs cleanup, duplicate from constants.ts
+import type { Category, Condition } from "@prisma/client";
 import { z } from "zod";
+import { CATEGORY_LABELS, CONDITION_LABELS } from "./constants";
 
-const CATEGORY_VALUES = [
-  "POWER_TOOLS",
-  "HAND_TOOLS",
-  "GARDEN",
-  "LADDERS",
-  "CLEANING",
-  "AUTOMOTIVE",
-  "OTHER",
-] as const;
-
-const CONDITION_VALUES = ["NEW", "LIKE_NEW", "GOOD", "FAIR", "WELL_USED"] as const;
+const CATEGORY_VALUES = Object.keys(CATEGORY_LABELS) as [Category, ...Category[]];
+const CONDITION_VALUES = Object.keys(CONDITION_LABELS) as [Condition, ...Condition[]];
 
 /** Zod schema for the create-tool form - validates all fields before a DB write. */
 export const createToolSchema = z.object({

@@ -23,7 +23,7 @@ export function OtpReturnForm({ requestId }: Props) {
     );
   }
 
-  function handleSubmit(e: React.FormEvent) {
+  function handleSubmit(e: React.ChangeEvent<HTMLFormElement>) {
     e.preventDefault();
     if (otp.trim().length !== 6) {
       setError("Enter the 6-digit code from the owner.");

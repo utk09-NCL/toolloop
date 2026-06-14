@@ -3,6 +3,7 @@ import { useState, useTransition } from "react";
 import { toggleAvailability } from "@/actions/tools";
 import { Button } from "@/components/ui/Button";
 import { logger } from "@/lib/logger";
+import styles from "./AvailabilityToggle.module.css";
 
 interface Props {
   toolId: string;
@@ -29,19 +30,12 @@ export function AvailabilityToggle({ toolId, available }: Props) {
   }
 
   return (
-    <div>
+    <div className={styles.wrap}>
       <Button size="sm" variant="ghost" disabled={isPending} onClick={handle}>
         {isPending ? "Saving…" : available ? "Mark unavailable" : "Mark available"}
       </Button>
       {error && (
-        <p
-          style={{
-            fontSize: "var(--text-sm)",
-            color: "var(--color-danger)",
-            margin: "var(--space-1) 0 0",
-          }}
-          role="alert"
-        >
+        <p className={styles.error} role="alert">
           {error}
         </p>
       )}

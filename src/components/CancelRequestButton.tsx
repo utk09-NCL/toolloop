@@ -3,6 +3,7 @@ import { useState, useTransition } from "react";
 import { cancelRequest } from "@/actions/requests";
 import { Button } from "@/components/ui/Button";
 import { logger } from "@/lib/logger";
+import styles from "./CancelRequestButton.module.css";
 
 interface Props {
   requestId: string;
@@ -31,19 +32,12 @@ export function CancelRequestButton({ requestId }: Props) {
   }
 
   return (
-    <div>
+    <div className={styles.wrap}>
       <Button size="sm" variant="ghost" disabled={pending} onClick={handle}>
         {pending ? "Cancelling…" : "Cancel request"}
       </Button>
       {error && (
-        <p
-          style={{
-            fontSize: "var(--text-sm)",
-            color: "var(--color-danger)",
-            margin: "var(--space-1) 0 0",
-          }}
-          role="alert"
-        >
+        <p className={styles.error} role="alert">
           {error}
         </p>
       )}

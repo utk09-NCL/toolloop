@@ -1,6 +1,7 @@
 "use server";
 import type { Prisma } from "@prisma/client";
 import { revalidatePath } from "next/cache";
+import { ROUTES } from "@/lib/constants";
 import { db } from "@/lib/db";
 import {
   canCancelRequest,
@@ -15,7 +16,7 @@ import { logger } from "@/lib/logger";
 import { getCurrentUser } from "@/lib/session";
 import { createRequestSchema } from "@/lib/validation";
 
-export type RequestResult = { ok: true } | { ok: false; error: string };
+type RequestResult = { ok: true } | { ok: false; error: string };
 
 /** Server action for the request-to-borrow form - enforces domain policy then creates a PENDING request. */
 export async function createRequest(
@@ -59,8 +60,8 @@ export async function createRequest(
     { userId: me.id, toolId: tool.id },
   );
 
-  revalidatePath(`/tools/${tool.id}`);
-  revalidatePath("/dashboard");
+  revalidatePath(ROUTES.TOOL(tool.id));
+  revalidatePath(ROUTES.DASHBOARD);
   logger.info("action.createRequest - success", { userId: me.id, toolId: tool.id });
   return { ok: true };
 }
@@ -103,8 +104,8 @@ async function transition(requestId: string, action: RequestAction): Promise<Req
     toolId: req.toolId,
   });
 
-  revalidatePath("/dashboard");
-  revalidatePath(`/tools/${req.toolId}`);
+  revalidatePath(ROUTES.DASHBOARD);
+  revalidatePath(ROUTES.TOOL(req.toolId));
   logger.info(`action.transition.${action} - success`, { requestId, toolId: req.toolId });
   return { ok: true };
 }
@@ -135,9 +136,9 @@ export async function cancelRequest(requestId: string): Promise<RequestResult> {
     { requestId },
   );
 
-  revalidatePath("/borrows");
-  revalidatePath(`/tools/${req.toolId}`);
-  revalidatePath("/dashboard");
+  revalidatePath(ROUTES.BORROWS);
+  revalidatePath(ROUTES.TOOL(req.toolId));
+  revalidatePath(ROUTES.DASHBOARD);
   logger.info("action.cancelRequest - success", { requestId });
   return { ok: true };
 }
@@ -165,7 +166,7 @@ export async function generateReturnOtp(
     { requestId },
   );
 
-  revalidatePath("/dashboard");
+  revalidatePath(ROUTES.DASHBOARD);
   logger.info("action.generateReturnOtp - success", { requestId });
   return { ok: true, otp };
 }
@@ -203,9 +204,9 @@ export async function submitReturnOtp(requestId: string, otp: string): Promise<R
     { requestId, toolId: req.toolId },
   );
 
-  revalidatePath("/borrows");
-  revalidatePath(`/tools/${req.toolId}`);
-  revalidatePath("/dashboard");
+  revalidatePath(ROUTES.BORROWS);
+  revalidatePath(ROUTES.TOOL(req.toolId));
+  revalidatePath(ROUTES.DASHBOARD);
   logger.info("action.submitReturnOtp - success", { requestId, toolId: req.toolId });
   return { ok: true };
 }

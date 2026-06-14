@@ -1,23 +1,18 @@
+import { TrackedLink } from "@/components/TrackedLink";
 import { ROUTES } from "@/lib/constants";
 import styles from "./Footer.module.css";
-import TrackedLink from "./TrackedLink";
 
+/** Site-wide footer with nav links and community tagline. */
 export function Footer() {
   return (
     <footer className={styles.footer}>
       <div className={styles.inner}>
-        <TrackedLink
-          href={ROUTES.HOME}
-          className={styles.brand}
-          aria-label="ToolLoop home"
-          label="logo"
-          location="footer"
-        >
+        <div className={styles.brand}>
           <span className={styles.logoMark} aria-hidden="true">
             ⬡
           </span>
           <span className={styles.logoText}>ToolLoop</span>
-        </TrackedLink>
+        </div>
         <nav className={styles.links} aria-label="Footer navigation">
           <TrackedLink
             href={ROUTES.BROWSE}
@@ -28,7 +23,7 @@ export function Footer() {
             Browse
           </TrackedLink>
           <TrackedLink
-            href={ROUTES.LIST_NEW_TOOL}
+            href={ROUTES.TOOL_NEW}
             className={styles.link}
             label="List a tool"
             location="footer"
@@ -36,26 +31,18 @@ export function Footer() {
             List a tool
           </TrackedLink>
           <TrackedLink
-            href={ROUTES.SAVED}
+            href={ROUTES.DASHBOARD}
             className={styles.link}
             label="Dashboard"
             location="footer"
           >
             Dashboard
           </TrackedLink>
-          <TrackedLink
-            href={ROUTES.LLMS_TXT}
-            className={styles.link}
-            label="llms.txt"
-            location="footer"
-          >
+          <TrackedLink href="/llms.txt" className={styles.link} label="llms.txt" location="footer">
             llms.txt
           </TrackedLink>
         </nav>
         <p className={styles.note}>Community tool lending · No money changes hands.</p>
-      </div>
-      <div className={styles.copyright}>
-        <p>&copy; {new Date().getFullYear()} ToolLoop. All rights reserved.</p>
       </div>
     </footer>
   );
