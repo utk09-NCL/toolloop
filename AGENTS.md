@@ -37,6 +37,7 @@ UI -> Server Actions (Next.js) -> Domain (pure policy) -> Prisma
 npm install # ensure on Node 22
 
 # generate schema and seed data
+# npx prisma migrate dev --name init
 npx prisma migrate dev
 npx prisma generate
 npx prisma db seed
