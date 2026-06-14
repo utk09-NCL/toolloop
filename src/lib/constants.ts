@@ -1,3 +1,5 @@
+import type { Category, Condition, RequestStatus } from "@prisma/client";
+
 /** Routes used in the application */
 export const ROUTES = {
   HOME: "/",
@@ -30,3 +32,37 @@ export const STEPS = [
     desc: "Coordinate with the owner directly. When you're done, mark it returned and it's available again.",
   },
 ];
+
+/** Human-readable labels for Category enum values - never render raw enum strings in the UI. */
+export const CATEGORY_LABELS: Record<Category, string> = {
+  POWER_TOOLS: "Power tools",
+  HAND_TOOLS: "Hand tools",
+  GARDEN: "Garden",
+  LADDERS: "Ladders",
+  CLEANING: "Cleaning",
+  AUTOMOTIVE: "Automotive",
+  OTHER: "Other",
+};
+
+/** Human-readable labels for Condition enum values. */
+export const CONDITION_LABELS: Record<Condition, string> = {
+  NEW: "New",
+  LIKE_NEW: "Like new",
+  GOOD: "Good",
+  FAIR: "Fair",
+  WELL_USED: "Well used",
+};
+
+/** Human-readable labels for RequestStatus enum values. */
+export const STATUS_LABELS: Record<RequestStatus, string> = {
+  PENDING: "Pending",
+  APPROVED: "Approved",
+  REJECTED: "Rejected",
+  RETURNED: "Returned",
+  CANCELLED: "Cancelled",
+};
+
+/** All supported neighborhood names - used for seeding, validation, and filter options. */
+export const NEIGHBORHOODS = ["Riverside", "Oak Hill", "Maple Court", "Cedar Flats"] as const;
+
+export type Neighborhood = (typeof NEIGHBORHOODS)[number];
