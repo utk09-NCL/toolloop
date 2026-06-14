@@ -1,41 +1,99 @@
-import type { Metadata } from "next";
-import TrackedLink from "@/components/TrackedLink";
+import Link from "next/link";
+import { CancelRequestButton } from "@/components/CancelRequestButton";
+import { OtpReturnForm } from "@/components/OtpReturnForm";
+import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { EmptyState } from "@/components/ui/EmptyState";
-import { ROUTES } from "@/lib/constants";
+import { STATUS_LABELS } from "@/lib/constants";
+import { db } from "@/lib/db";
+import { getCurrentUser } from "@/lib/session";
+import styles from "./borrows.module.css";
+import TrackedLink from "@/components/TrackedLink";
 
-export const metadata: Metadata = { title: "My borrows - ToolLoop" };
+export const metadata = { title: "My borrows - ToolLoop" };
 
-// TODO [PRISMA]: Load the current user's active borrow requests (PENDING + APPROVED only).
-//
-//   const me = await getCurrentUser();
-//   const requests = await db.borrowRequest.findMany({
-//     where: {
-//       requesterId: me.id,
-//       status: { in: ["PENDING", "APPROVED"] },  <- only show active ones; RETURNED/CANCELLED/REJECTED go to history
-//     },
-//     include: { tool: { include: { owner: true } } },
-//     orderBy: { createdAt: "desc" },
-//   });
-//
-// For PENDING requests: show a Cancel button (calls cancelRequest server action, no OTP needed).
-// For APPROVED requests: show an OTP input form. The borrower enters the 6-digit code
-//   the owner generates on their dashboard. submitReturnOtp() verifies the code and
-//   atomically sets status=RETURNED + tool.available=true in one $transaction.
-//
-// Empty state when no active requests exist.
+export default async function BorrowsPage() {
+  const currentUser = await getCurrentUser();
 
-export default function BorrowsPage() {
+  const requests = await db.borrowRequest.findMany({
+    where: {
+      requesterId: currentUser.id,
+      status: { in: ["PENDING", "APPROVED"] },
+    },
+    include: { tool: { include: { owner: true } } },
+    orderBy: { createdAt: "desc" },
+  });
+
   return (
-    <EmptyState
-      icon="📦"
-      headline="No active borrow requests"
-      subtext="When you request a tool it will appear here. You'll be able to cancel pending requests or submit the return code for approved ones."
-      action={
-        <Button as={TrackedLink} href={ROUTES.BROWSE}>
-          Browse tools
-        </Button>
-      }
-    />
+    <div className={styles.page}>
+      <div className={styles.header}>
+        <div>
+          <h1 className={styles.title}>My borrows</h1>
+          {requests.length > 0 && (
+            <p className={styles.count}>
+              {requests.length} active {requests.length === 1 ? "request" : "requests"}
+            </p>
+          )}
+        </div>
+      </div>
+
+      {requests.length === 0 ? (
+        <EmptyState
+          icon="🔧"
+          headline="No active borrow requests"
+          subtext="When you request a tool, it'll show up here."
+          action={
+            <Button as={Link} href="/browse">
+              Browse tools
+            </Button>
+          }
+        />
+      ) : (
+        <ul className={styles.list}>
+          {requests.map((req) => (
+            <li key={req.id} className={styles.item}>
+              <div className={styles.toolInfo}>
+                <TrackedLink
+                  href={`/tools/${req.tool.id}`}
+                  className={styles.toolName}
+                  label={req.tool.name}
+                  location="borrows"
+                >
+                  {req.tool.name}
+                </TrackedLink>
+                <p className={styles.owner}>
+                  {req.tool.owner.name} · {req.tool.neighborhood}
+                </p>
+                {req.message && <p className={styles.message}>"{req.message}"</p>}
+              </div>
+
+              <div className={styles.actions}>
+                <Badge
+                  label={STATUS_LABELS[req.status]}
+                  variant={req.status === "PENDING" ? "pending" : "approved"}
+                />
+
+                {req.status === "PENDING" && <CancelRequestButton requestId={req.id} />}
+
+                {req.status === "APPROVED" && (
+                  <div className={styles.returnSection}>
+                    <p className={styles.returnHint}>
+                      Ask the owner for their 6-digit return code.
+                    </p>
+                    <OtpReturnForm requestId={req.id} />
+                    <p className={styles.support}>
+                      Problem?{" "}
+                      <a href="mailto:support@toolloop.example" className={styles.supportLink}>
+                        support@toolloop.example
+                      </a>
+                    </p>
+                  </div>
+                )}
+              </div>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
   );
 }

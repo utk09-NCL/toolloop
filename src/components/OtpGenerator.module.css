@@ -1,0 +1,91 @@
+.wrap {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.label {
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--color-text-muted);
+  margin: 0;
+}
+
+.otpRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.otpInput {
+  font-family: ui-monospace, monospace;
+  font-size: var(--text-base);
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  width: 7rem;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-bg);
+  color: var(--color-text);
+}
+
+.toggleBtn,
+.regenerateBtn {
+  padding: var(--space-2) var(--space-3);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border);
+  background: transparent;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition:
+    color 0.15s,
+    border-color 0.15s;
+}
+
+.toggleBtn:hover,
+.regenerateBtn:hover {
+  color: var(--color-text);
+  border-color: var(--color-border-hover);
+}
+
+.toggleBtn:focus-visible,
+.regenerateBtn:focus-visible,
+.generateBtn:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+.generateBtn {
+  align-self: flex-start;
+  padding: var(--space-2) var(--space-3);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border);
+  background: transparent;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition:
+    color 0.15s,
+    border-color 0.15s;
+}
+
+.generateBtn:hover {
+  color: var(--color-text);
+  border-color: var(--color-border-hover);
+}
+
+.generateBtn:disabled,
+.regenerateBtn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.error {
+  font-size: var(--text-sm);
+  color: var(--color-danger);
+  margin: 0;
+}

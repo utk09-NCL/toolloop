@@ -1,47 +1,96 @@
-import type { Metadata } from "next";
-import TrackedLink from "@/components/TrackedLink";
+import Link from "next/link";
+import { AvailabilityToggle } from "@/components/AvailabilityToggle";
+import { RequestList } from "@/components/RequestList";
+import { ToolPhoto } from "@/components/ToolPhoto";
+import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { EmptyState } from "@/components/ui/EmptyState";
-import { ROUTES } from "@/lib/constants";
+import { CATEGORY_LABELS } from "@/lib/constants";
+import { db } from "@/lib/db";
+import { getCurrentUser } from "@/lib/session";
+import styles from "./dashboard.module.css";
 
-export const metadata: Metadata = { title: "Dashboard - ToolLoop" };
+export const metadata = { title: "Dashboard - ToolLoop" };
 
-// TODO [PRISMA]: Resolve who is logged in, then load their tools with incoming requests.
-//
-// Step 1 - identity:
-//   const me = await getCurrentUser();
-//   getCurrentUser() reads the "toolloop_user" HTTP-only cookie, looks up the User row,
-//   and falls back to the first user alphabetically if the cookie is missing.
-//
-// Step 2 - tools + requests:
-//   const tools = await db.tool.findMany({
-//     where: { ownerId: me.id },
-//     include: {
-//       requests: {
-//         include: { requester: { select: { name: true } } },
-//         orderBy: { createdAt: "desc" },
-//       },
-//     },
-//     orderBy: { createdAt: "desc" },
-//   });
-//
-// Render one card per tool. Each card shows:
-//   - tool name + category badge + availability badge
-//   - AvailabilityToggle (calls toggleAvailability server action)
-//   - RequestList (approve / reject / OTP generate per request)
-// Empty state when the owner has no tools yet.
+export default async function DashboardPage() {
+  const currentUser = await getCurrentUser();
 
-export default function DashboardPage() {
+  const tools = await db.tool.findMany({
+    where: { ownerId: currentUser.id },
+    include: {
+      requests: {
+        include: { requester: { select: { name: true } } },
+        orderBy: { createdAt: "desc" },
+      },
+    },
+    orderBy: { createdAt: "desc" },
+  });
+
   return (
-    <EmptyState
-      icon="📋"
-      headline="Dashboard coming soon"
-      subtext="Once the database is set up, you'll see your listed tools and incoming borrow requests here."
-      action={
-        <Button as={TrackedLink} href={ROUTES.LIST_NEW_TOOL}>
-          List a tool
-        </Button>
-      }
-    />
+    <div className={styles.page}>
+      <div className={styles.inner}>
+        <div className={styles.header}>
+          <div>
+            <h1 className={styles.title}>Dashboard</h1>
+            <p className={styles.subtitle}>Viewing as {currentUser.name}</p>
+          </div>
+          <Button as={Link} href="/tools/new" size="sm">
+            + List a tool
+          </Button>
+        </div>
+
+        {tools.length === 0 ? (
+          <EmptyState
+            icon="🔧"
+            headline="No tools listed yet"
+            subtext="List a tool to start lending to neighbors."
+            action={
+              <Button as={Link} href="/tools/new">
+                List your first tool
+              </Button>
+            }
+          />
+        ) : (
+          <ul className={styles.toolList}>
+            {tools.map((tool) => (
+              <li key={tool.id} className={styles.toolItem}>
+                <div className={styles.toolHeader}>
+                  <div className={styles.toolLeft}>
+                    <ToolPhoto
+                      toolName={tool.name}
+                      avatarColor={currentUser.avatarColor}
+                      size="sm"
+                    />
+                    <div className={styles.toolMeta}>
+                      <Link href={`/tools/${tool.id}`} className={styles.toolName}>
+                        {tool.name}
+                      </Link>
+                      <div className={styles.toolBadges}>
+                        <Badge label={CATEGORY_LABELS[tool.category]} variant="category" />
+                        <Badge
+                          label={tool.available ? "Available" : "Unavailable"}
+                          variant={tool.available ? "available" : "unavailable"}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                  <AvailabilityToggle toolId={tool.id} available={tool.available} />
+                </div>
+
+                <div className={styles.requestsSection}>
+                  <h3 className={styles.requestsHeading}>
+                    Requests
+                    {tool.requests.length > 0 && (
+                      <span className={styles.requestCount}>{tool.requests.length}</span>
+                    )}
+                  </h3>
+                  <RequestList requests={tool.requests} />
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+    </div>
   );
 }

@@ -1,38 +1,52 @@
-import type { Metadata } from "next";
-import TrackedLink from "@/components/TrackedLink";
+import Link from "next/link";
+import { ToolCard } from "@/components/ToolCard";
 import { Button } from "@/components/ui/Button";
 import { EmptyState } from "@/components/ui/EmptyState";
-import { ROUTES } from "@/lib/constants";
+import { db } from "@/lib/db";
+import { getCurrentUser } from "@/lib/session";
+import styles from "./saved.module.css";
 
-export const metadata: Metadata = { title: "Saved tools - ToolLoop" };
+export const metadata = { title: "Saved tools - ToolLoop" };
 
-// TODO [PRISMA]: Load the current user's favorited tools.
-//
-//   const me = await getCurrentUser();
-//   const favorites = await db.favorite.findMany({
-//     where: { userId: me.id },
-//     include: { tool: { include: { owner: true } } },
-//     orderBy: { createdAt: "desc" },
-//   });
-//
-// The Favorite model has a @@unique([userId, toolId]) constraint - this is what makes the
-// heart-toggle idempotent. Clicking the heart calls toggleFavorite(toolId) which checks
-// whether a Favorite row exists and creates or deletes it accordingly.
-//
-// Render a grid of <ToolCard> with isFavorited={true} (all cards here are favorited).
-// Empty state when the user hasn't saved anything yet.
+export default async function SavedPage() {
+  const currentUser = await getCurrentUser();
+  const favorites = await db.favorite.findMany({
+    where: { userId: currentUser.id },
+    include: { tool: { include: { owner: true } } },
+    orderBy: { createdAt: "desc" },
+  });
 
-export default function SavedPage() {
   return (
-    <EmptyState
-      icon="♡"
-      headline="No saved tools yet"
-      subtext="Tap the heart on any tool to save it here. Your saved tools will appear once the database is set up."
-      action={
-        <Button as={TrackedLink} href={ROUTES.BROWSE}>
-          Browse tools
-        </Button>
-      }
-    />
+    <div className={styles.page}>
+      <div className={styles.header}>
+        <div>
+          <h1 className={styles.title}>Saved tools</h1>
+          {favorites.length > 0 && (
+            <p className={styles.count}>
+              {favorites.length} {favorites.length === 1 ? "tool" : "tools"}
+            </p>
+          )}
+        </div>
+      </div>
+
+      {favorites.length === 0 ? (
+        <EmptyState
+          icon="♡"
+          headline="No saved tools yet"
+          subtext="Tap the heart on any tool to save it here."
+          action={
+            <Button as={Link} href="/browse">
+              Browse tools
+            </Button>
+          }
+        />
+      ) : (
+        <div className={styles.grid}>
+          {favorites.map(({ tool }) => (
+            <ToolCard key={tool.id} tool={tool} isFavorited={true} />
+          ))}
+        </div>
+      )}
+    </div>
   );
 }
