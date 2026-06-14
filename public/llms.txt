@@ -1,0 +1,17 @@
+# ToolLoop
+
+> Borrow tools from people nearby. A community webapp for listing, browsing,
+> requesting, and returning shared neighborhood tools. No payments, no rentals.
+
+## Key pages
+- [Home](/): What ToolLoop is and how it works.
+- [Browse](/browse): All available tools, filterable by category, neighborhood, and availability.
+- [List a tool](/tools/new): Add a tool you're willing to lend.
+- [Saved](/saved): Tools you have hearted, for quick access later.
+- [My borrows](/borrows): Active borrow requests (pending + approved). Enter the owner's return code to confirm a return.
+- [Dashboard](/dashboard): Manage your tools and incoming borrow requests.
+
+## Concepts
+- A borrow request moves through: pending → approved or rejected → returned.
+- Approving a request marks the tool unavailable; returning it makes it available again.
+- Identity is demo-only (no accounts); switch users from the header.
