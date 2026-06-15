@@ -39,3 +39,26 @@ npm run build
 npm run lint
 npm run test 
 npm run test:watch
+
+## Route Map
+
+| Route | Type | Description |
+|--------|--------|--------|
+| `/` | RSC | Home page |
+| `/browse` | RSC | Browse available tools |
+| `/tool/[id]` | RSC | Tool details |
+| `/tools/new` | RSC + Action | Create a tool |
+| `/dashboard` | RSC | Owner dashboard |
+| `/borrows` | RSC | Borrow requests |
+| `/saved` | RSC | Saved tools |
+
+## Testing
+
+Testing documentation is currently being expanded.
+
+For testing guidance, refer to TESTS.md and the active testing issues. This section will be updated after the Vitest infrastructure and testing document work is completed.
+
+## Documentation
+
+AGENTS.md is the authoritative reference for architecture, conventions, workflows, and development guidelines.
+
