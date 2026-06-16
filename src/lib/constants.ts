@@ -44,3 +44,6 @@ export const ROUTES = {
   BORROWS: "/borrows",
   SAVED: "/saved",
 } as const;
+
+/** Maximum number of PENDING borrow requests a single user may hold simultaneously. */
+export const MAX_PENDING_REQUESTS = 3;

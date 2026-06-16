@@ -37,18 +37,23 @@ export async function createRequest(
 
   logger.info("action.createRequest", { userId: me.id, toolId: parsed.data.toolId });
 
-  const tool = await db.tool.findUnique({
-    where: { id: parsed.data.toolId },
-    include: {
-      requests: { where: { status: "PENDING" }, select: { requesterId: true, status: true } },
-    },
-  });
+  const [tool, totalPending] = await Promise.all([
+    db.tool.findUnique({
+      where: { id: parsed.data.toolId },
+      include: {
+        requests: { where: { status: "PENDING" }, select: { requesterId: true, status: true } },
+      },
+    }),
+    db.borrowRequest.count({
+      where: { requesterId: me.id, status: "PENDING" },
+    }),
+  ]);
   if (!tool) {
     logger.warn("action.createRequest - tool not found", { toolId: parsed.data.toolId });
     return { ok: false, error: "Tool not found." };
   }
 
-  const decision = canCreateRequest(tool, me.id, tool.requests);
+  const decision = canCreateRequest(tool, me.id, tool.requests, totalPending);
   if (!decision.ok) {
     logger.warn("action.createRequest - denied", {
       reason: decision.reason,

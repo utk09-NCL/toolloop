@@ -1,4 +1,5 @@
 import type { BorrowRequest, Tool } from "@prisma/client";
+import { MAX_PENDING_REQUESTS } from "../constants";
 
 type Decision = { ok: true } | { ok: false; reason: string };
 export type RequestAction = "approve" | "reject" | "return" | "cancel";
@@ -18,12 +19,23 @@ export function canCreateRequest(
   tool: Pick<Tool, "ownerId" | "available">,
   requesterId: string,
   existingRequests: Pick<BorrowRequest, "requesterId" | "status">[],
+  totalPendingCount: number, // <-- ADD THIS NEW PARAMETER
 ): Decision {
   if (isOwner(tool, requesterId)) return { ok: false, reason: "You can't borrow your own tool." };
   if (!tool.available) return { ok: false, reason: "This tool isn't available right now." };
+
   if (existingRequests.some((r) => r.requesterId === requesterId && r.status === "PENDING")) {
     return { ok: false, reason: "You already have a pending request for this tool." };
   }
+
+  // <-- ADD THIS NEW CAP CHECK -->
+  if (totalPendingCount >= MAX_PENDING_REQUESTS) {
+    return {
+      ok: false,
+      reason: `You can only have ${MAX_PENDING_REQUESTS} pending requests at a time. Cancel one before requesting another.`,
+    };
+  }
+
   return { ok: true };
 }
 
