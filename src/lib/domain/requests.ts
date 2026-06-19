@@ -19,7 +19,7 @@ export function canCreateRequest(
   tool: Pick<Tool, "ownerId" | "available">,
   requesterId: string,
   existingRequests: Pick<BorrowRequest, "requesterId" | "status">[],
-  totalPendingCount: number, // <-- ADD THIS NEW PARAMETER
+  totalPendingCount: number, 
 ): Decision {
   if (isOwner(tool, requesterId)) return { ok: false, reason: "You can't borrow your own tool." };
   if (!tool.available) return { ok: false, reason: "This tool isn't available right now." };
@@ -28,7 +28,7 @@ export function canCreateRequest(
     return { ok: false, reason: "You already have a pending request for this tool." };
   }
 
-  // <-- ADD THIS NEW CAP CHECK -->
+  
   if (totalPendingCount >= MAX_PENDING_REQUESTS) {
     return {
       ok: false,
