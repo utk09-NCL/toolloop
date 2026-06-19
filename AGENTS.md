@@ -120,3 +120,28 @@ Reset to clean state: `npm run db:reset`
 - Have a new caveman-styled block appended to `checkpoint.txt` with a short description of the change
 - Be reachable via UI, not just in code
 - Leave empty/loading/error states on every list surface (no blank pages)
+
+
+## Contributing Workflow:-
+
+### Adding a new route
+
+1. Create a `page.tsx` file as an async server component.
+2. Add the route constant to `ROUTES` in `constants.ts`.
+3. Add an `error.tsx` file for route-level error handling.
+
+### Adding a new server action
+
+1. Create a thin action in `src/actions/`.
+2. Place business rules in `src/lib/domain/`.
+3. Add a zod schema in `src/lib/validation.ts` if a new input shape is required.
+4. Call `revalidatePath()` after every successful mutation.
+
+### PR(Pull Request) Checklist
+
+Before opening a PR, make sure:
+
+* `npm run lint` passes.
+* `npm run build` passes with no type errors.
+* A new caveman-style is appended to `checkpoint.txt`.
+* All list surfaces have empty, loading, and error states.
