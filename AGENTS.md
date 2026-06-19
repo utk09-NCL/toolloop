@@ -135,7 +135,7 @@ Reset to clean state: `npm run db:reset`
 1. Create a thin action in `src/actions/`.
 2. Place business rules in `src/lib/domain/`.
 3. Add a zod schema in `src/lib/validation.ts` if a new input shape is required.
-4. Call `revalidatePath()` after every successful mutaion.
+4. Call `revalidatePath()` after every successful mutation.
 
 ### PR(Pull Request) Checklist
 
